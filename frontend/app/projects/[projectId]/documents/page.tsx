@@ -1,21 +1,21 @@
 import { notFound, redirect } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, FileUp } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 
 import { createClient } from "@/lib/supabase/server";
+import { DocumentList } from "@/components/documents/document-list";
+import { DocumentUploadForm } from "@/components/documents/document-upload-form";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
+import type { ProjectDocument } from "@/types/document";
+
 
 interface DocumentsPageProps {
   params: Promise<{
     projectId: string;
   }>;
 }
+
 
 export default async function DocumentsPage({
   params,
@@ -32,15 +32,43 @@ export default async function DocumentsPage({
     redirect("/login");
   }
 
-  const { data: project, error } = await supabase
-    .from("projects")
-    .select("id, name")
-    .eq("id", projectId)
-    .single();
+  const [projectResult, documentsResult] =
+    await Promise.all([
+      supabase
+        .from("projects")
+        .select("id, name")
+        .eq("id", projectId)
+        .single(),
 
-  if (error || !project) {
+      supabase
+        .from("project_documents")
+        .select("*")
+        .eq("project_id", projectId)
+        .order("created_at", {
+          ascending: false,
+        }),
+    ]);
+
+  if (
+    projectResult.error ||
+    !projectResult.data
+  ) {
     notFound();
   }
+
+  if (documentsResult.error) {
+    console.error(
+      "Documents could not be loaded:",
+      documentsResult.error,
+    );
+  }
+
+  const project = projectResult.data;
+
+  const documents =
+    (documentsResult.data as
+      | ProjectDocument[]
+      | null) ?? [];
 
   return (
     <main className="min-h-screen bg-muted/30">
@@ -55,28 +83,46 @@ export default async function DocumentsPage({
         </div>
       </header>
 
-      <div className="mx-auto max-w-5xl space-y-6 px-6 py-8">
-        <div>
-          <h1 className="text-3xl font-bold tracking-tight">Proje belgeleri</h1>
+      <div className="mx-auto max-w-5xl space-y-8 px-6 py-8">
+        <section>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Proje belgeleri
+          </h1>
 
-          <p className="mt-2 text-muted-foreground">{project.name}</p>
-        </div>
+          <p className="mt-2 text-muted-foreground">
+            {project.name}
+          </p>
+        </section>
 
-        <Card>
-          <CardHeader>
-            <CardTitle>PDF belgeleri</CardTitle>
-          </CardHeader>
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              Yeni belge yükle
+            </h2>
 
-          <CardContent className="flex min-h-64 flex-col items-center justify-center text-center">
-            <FileUp className="mb-4 h-12 w-12 text-muted-foreground" />
-
-            <h2 className="font-semibold">Belge yükleme alanı</h2>
-
-            <p className="mt-2 max-w-md text-sm text-muted-foreground">
-              Sonraki adımda çoklu PDF yükleme, Supabase Storage ve FastAPI PDF kontrol servisini bu ekrana bağlayacağız.
+            <p className="text-sm text-muted-foreground">
+              Her PDF için belge türünü seçin.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+
+          <DocumentUploadForm
+            projectId={project.id}
+          />
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              Yüklenen belgeler
+            </h2>
+
+            <p className="text-sm text-muted-foreground">
+              Toplam {documents.length} belge
+            </p>
+          </div>
+
+          <DocumentList documents={documents} />
+        </section>
       </div>
     </main>
   );
