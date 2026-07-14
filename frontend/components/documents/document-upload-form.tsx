@@ -27,13 +27,6 @@ import {
   Card,
   CardContent,
 } from "@/components/ui/card";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import type {
   DocumentType,
@@ -315,32 +308,6 @@ export function DocumentUploadForm({
         </CardContent>
       </Card>
 
-      <div className="flex flex-col justify-between gap-4 rounded-lg border bg-muted/20 p-4 sm:flex-row sm:items-center">
-        <div className="text-sm">
-          <p className="font-medium">
-            {documents.length > 0 ? `${documents.length} belge seçildi` : "Henüz belge seçilmedi"}
-          </p>
-
-          <p className="text-muted-foreground">
-            {documents.length > 0 ? `Toplam ${formatFileSize(totalSize)}` : "PDF seçmek için üstteki alanı kullanın"}
-          </p>
-        </div>
-
-        <Button type="submit" disabled={isUploading || documents.length === 0}>
-          {isUploading ? (
-            <>
-              <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
-              Belgeler yükleniyor...
-            </>
-          ) : (
-            <>
-              <Upload className="mr-2 h-4 w-4" />
-              Belgeleri kaydet ve yükle
-            </>
-          )}
-        </Button>
-      </div>
-
       <div className="space-y-3">
         {documents.length > 0 ? (
           documents.map((document) => (
@@ -356,24 +323,19 @@ export function DocumentUploadForm({
                   </div>
                 </div>
 
-                <Select
+                <select
                   value={document.documentType}
-                  onValueChange={(value) =>
-                    updateDocumentType(document.id, value as DocumentType)
+                  onChange={(e) =>
+                    updateDocumentType(document.id, e.target.value as DocumentType)
                   }
+                  className="flex h-10 w-full items-center justify-between rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
                 >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-
-                  <SelectContent>
-                    {DOCUMENT_TYPE_OPTIONS.map((option) => (
-                      <SelectItem key={option.value} value={option.value}>
-                        {option.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                  {DOCUMENT_TYPE_OPTIONS.map((option) => (
+                    <option key={option.value} value={option.value}>
+                      {option.label}
+                    </option>
+                  ))}
+                </select>
 
                 <Button
                   type="button"
@@ -392,13 +354,40 @@ export function DocumentUploadForm({
           <Card>
             <CardContent className="flex min-h-32 items-center justify-center text-center">
               <p className="text-sm text-muted-foreground">
-                Yükleme butonu, PDF seçince aktif olur. Seçilen dosyalar önce Supabase Storage'a gider, ardından <span className="font-medium text-foreground">project_documents</span> tablosuna kaydedilir.
+                PDF seçmek için üstteki alana tıklayın. Dosyaları seçtikten sonra her birine belge türü atayın ve <span className="font-medium text-foreground">Belgeleri kaydet</span> butonuyla yükleyin.
               </p>
             </CardContent>
           </Card>
         )}
-
       </div>
+
+      {documents.length > 0 && (
+        <div className="flex flex-col justify-between gap-4 rounded-lg border bg-muted/20 p-4 sm:flex-row sm:items-center">
+          <div className="text-sm">
+            <p className="font-medium">
+              {documents.length} belge seçildi
+            </p>
+
+            <p className="text-muted-foreground">
+              Toplam {formatFileSize(totalSize)}
+            </p>
+          </div>
+
+          <Button type="submit" disabled={isUploading}>
+            {isUploading ? (
+              <>
+                <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
+                Belgeler yükleniyor...
+              </>
+            ) : (
+              <>
+                <Upload className="mr-2 h-4 w-4" />
+                Belgeleri kaydet ve yükle
+              </>
+            )}
+          </Button>
+        </div>
+      )}
     </form>
   );
 }
