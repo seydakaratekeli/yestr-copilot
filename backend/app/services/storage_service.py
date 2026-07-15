@@ -41,3 +41,33 @@ def remove_file_from_storage(
     except Exception:
         # Temizleme hatası ana hatayı gölgelememeli.
         pass
+
+class StorageDownloadError(RuntimeError):
+    pass
+
+
+def download_file_from_storage(
+    *,
+    supabase: Client,
+    bucket: str,
+    storage_path: str,
+) -> bytes:
+    try:
+        response = (
+            supabase.storage
+            .from_(bucket)
+            .download(storage_path)
+        )
+
+        if isinstance(response, bytes):
+            return response
+
+        if hasattr(response, "content"):
+            return bytes(response.content)
+
+        return bytes(response)
+
+    except Exception as exc:
+        raise StorageDownloadError(
+            "PDF Storage alanından indirilemedi."
+        ) from exc 

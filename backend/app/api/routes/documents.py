@@ -1,4 +1,5 @@
 from uuid import UUID, uuid4
+from fastapi import BackgroundTasks
 
 from fastapi import (
     APIRouter,
@@ -36,7 +37,9 @@ from app.services.storage_service import (
     remove_file_from_storage,
     upload_pdf_to_storage,
 )
-
+from app.services.document_processing_service import (
+    process_document,
+)
 
 router = APIRouter()
 
@@ -62,6 +65,7 @@ ALLOWED_DOCUMENT_TYPES = {
 )
 async def upload_project_documents(
     project_id: UUID,
+    background_tasks: BackgroundTasks,
     files: list[UploadFile] = File(...),
     document_types: list[str] = Form(...),
     current_user: AuthenticatedUser = Depends(
@@ -193,10 +197,10 @@ async def upload_project_documents(
                             metadata.page_count
                         ),
                         "processing_status": (
-                            "completed"
+                            "queued"
                         ),
                         "extraction_status": (
-                            extraction_status
+                            "pending"
                         ),
                         "error_message": None,
                     }
@@ -208,6 +212,12 @@ async def upload_project_documents(
                 raise RuntimeError(
                     "Belge veritabanına kaydedilemedi."
                 )
+
+            background_tasks.add_task(
+                process_document,
+                document_id=document_id,
+            )
+
 
             successful.append(
                 DocumentUploadResult(
@@ -224,10 +234,8 @@ async def upload_project_documents(
                     requires_ocr=(
                         metadata.requires_ocr
                     ),
-                    processing_status="completed",
-                    extraction_status=(
-                        extraction_status
-                    ),
+                    processing_status="queued",
+                    extraction_status="pending",
                 )
             )
 
@@ -288,3 +296,121 @@ async def upload_project_documents(
         successful=successful,
         failed=failed,
     )
+
+@router.post(
+    "/documents/{document_id}/process",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def queue_document_processing(
+    document_id: UUID,
+    background_tasks: BackgroundTasks,
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    ),
+) -> dict[str, str]:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase
+        .table("project_documents")
+        .select(
+            "id, project_id, processing_status"
+        )
+        .eq("id", str(document_id))
+        .limit(1)
+        .execute()
+    )
+
+    if not response.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Belge bulunamadı.",
+        )
+
+    document = response.data[0]
+
+    get_accessible_project(
+        supabase=supabase,
+        project_id=document["project_id"],
+        user_id=current_user.id,
+    )
+
+    if document["processing_status"] in {
+        "queued",
+        "processing",
+    }:
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail="Belge zaten işleme sırasında.",
+        )
+
+    (
+        supabase
+        .table("project_documents")
+        .update(
+            {
+                "processing_status": "queued",
+                "extraction_status": "pending",
+                "error_message": None,
+            }
+        )
+        .eq("id", str(document_id))
+        .execute()
+    )
+
+    background_tasks.add_task(
+        process_document,
+        document_id=str(document_id),
+    )
+
+    return {
+        "document_id": str(document_id),
+        "status": "queued",
+    }
+
+
+@router.get(
+    "/documents/{document_id}",
+)
+async def get_document_detail(
+    document_id: UUID,
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    ),
+) -> dict:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase
+        .table("project_documents")
+        .select(
+            (
+                "id, project_id, original_filename, "
+                "document_type, file_size_bytes, "
+                "page_count, processing_status, "
+                "extraction_status, "
+                "extracted_character_count, "
+                "extracted_word_count, chunk_count, "
+                "error_message, created_at, updated_at"
+            )
+        )
+        .eq("id", str(document_id))
+        .limit(1)
+        .execute()
+    )
+
+    if not response.data:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Belge bulunamadı.",
+        )
+
+    document = response.data[0]
+
+    get_accessible_project(
+        supabase=supabase,
+        project_id=document["project_id"],
+        user_id=current_user.id,
+    )
+
+    return document

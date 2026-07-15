@@ -11,13 +11,17 @@ class Settings(BaseSettings):
     supabase_anon_key: str
     supabase_service_role_key: str
 
-    frontend_url: str = "http://localhost:3000"
+    frontend_url: str
 
     storage_bucket: str = "project-documents"
 
     max_pdf_size_mb: int = 25
     max_pdf_page_count: int = 50
     max_files_per_request: int = 10
+
+    chunk_size_characters: int = 1800
+    chunk_overlap_characters: int = 250
+    minimum_chunk_characters: int = 80
 
     model_config = SettingsConfigDict(
         env_file=".env",

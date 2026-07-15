@@ -53,6 +53,7 @@ export default async function DocumentsPage({
     projectResult.error ||
     !projectResult.data
   ) {
+    console.error("Project fetch failed:", projectResult.error);
     notFound();
   }
 
