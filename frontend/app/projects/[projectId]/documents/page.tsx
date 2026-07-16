@@ -8,6 +8,7 @@ import { DocumentUploadForm } from "@/components/documents/document-upload-form"
 import { Button } from "@/components/ui/button";
 
 import type { ProjectDocument } from "@/types/document";
+import { DocumentProcessingRefresh } from "@/components/documents/document-processing-refresh";
 
 
 interface DocumentsPageProps {
@@ -71,6 +72,12 @@ export default async function DocumentsPage({
       | ProjectDocument[]
       | null) ?? [];
 
+  const hasProcessingDocuments = documents.some(
+    (document) =>
+      document.processing_status === "queued" ||
+      document.processing_status === "processing"
+  );
+
   return (
     <main className="min-h-screen bg-muted/30">
       <header className="border-b bg-background">
@@ -125,6 +132,8 @@ export default async function DocumentsPage({
           <DocumentList documents={documents} />
         </section>
       </div>
+
+      <DocumentProcessingRefresh enabled={hasProcessingDocuments} />
     </main>
   );
 }

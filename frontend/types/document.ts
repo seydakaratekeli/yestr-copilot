@@ -41,6 +41,13 @@ export interface ProjectDocument {
 
   created_at: string;
   updated_at: string;
+
+  extracted_character_count: number;
+extracted_word_count: number;
+chunk_count: number;
+
+processing_started_at: string | null;
+processing_completed_at: string | null;
 }
 
 export interface UploadedDocumentResult {

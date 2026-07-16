@@ -78,23 +78,52 @@ export function DocumentList({
                   <span>
                     {formatDate(document.created_at)}
                   </span>
+
+                  {document.processing_status === "completed" && (
+                    <>
+                      <span>
+                        {document.extracted_word_count} kelime
+                      </span>
+
+                      <span>
+                        {document.chunk_count} metin parçası
+                      </span>
+                    </>
+                  )}
                 </div>
+
+                {document.error_message && (
+                  <p className="mt-2 text-sm text-destructive">
+                    {document.error_message}
+                  </p>
+                )}
               </div>
             </div>
 
             <div className="flex shrink-0 flex-wrap gap-2">
               <Badge
                 variant={
-                  document.processing_status ===
-                  "completed"
+                  document.processing_status === "completed"
                     ? "default"
-                    : "secondary"
+                    : document.processing_status === "failed"
+                      ? "destructive"
+                      : "secondary"
                 }
               >
-                {document.processing_status ===
-                "completed"
-                  ? "Kontrol edildi"
-                  : document.processing_status}
+                {document.processing_status === "queued" &&
+                  "Sırada"}
+
+                {document.processing_status === "processing" &&
+                  "Metin çıkarılıyor"}
+
+                {document.processing_status === "completed" &&
+                  "İşlendi"}
+
+                {document.processing_status === "failed" &&
+                  "İşleme başarısız"}
+
+                {document.processing_status === "uploaded" &&
+                  "Yüklendi"}
               </Badge>
 
               {document.extraction_status ===
