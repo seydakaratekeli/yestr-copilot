@@ -183,6 +183,13 @@ def process_document(
                             timezone.utc
                         ).isoformat()
                     ),
+                    "native_page_count": (
+    len(extracted_pages)
+    - ocr_page_count
+    - failed_page_count
+),
+"ocr_page_count": ocr_page_count,
+"failed_page_count": failed_page_count,
                     "error_message": None,
                 }
             )
