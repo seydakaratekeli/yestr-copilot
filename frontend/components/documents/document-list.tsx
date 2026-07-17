@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 
 import type { ProjectDocument } from "@/types/document";
-
+import { ReprocessDocumentButton } from "@/components/documents/reprocess-document-button"; 
 
 interface DocumentListProps {
   documents: ProjectDocument[];
@@ -90,6 +90,28 @@ export function DocumentList({
                       </span>
                     </>
                   )}
+
+                  {document.processing_status === "completed" && (
+                    <>
+                      {document.native_page_count > 0 && (
+                        <span>
+                          {document.native_page_count} doğal metin sayfası
+                        </span>
+                      )}
+
+                      {document.ocr_page_count > 0 && (
+                        <span>
+                          {document.ocr_page_count} OCR sayfası
+                        </span>
+                      )}
+
+                      {document.failed_page_count > 0 && (
+                        <span className="text-destructive">
+                          {document.failed_page_count} başarısız sayfa
+                        </span>
+                      )}
+                    </>
+                  )}
                 </div>
 
                 {document.error_message && (
@@ -134,11 +156,39 @@ export function DocumentList({
                 </Badge>
               )}
 
-              {document.extraction_status ===
-                "completed" && (
-                <Badge variant="outline">
-                  Metin içeriyor
+              {document.extraction_status === "processing" && (
+                <Badge variant="secondary">
+                  <ScanText className="mr-1 h-3 w-3" />
+                  Metin çıkarılıyor
                 </Badge>
+              )}
+
+              {document.extraction_status === "completed" && (
+                <Badge variant="outline">
+                  Metin çıkarıldı
+                </Badge>
+              )}
+
+              {document.extraction_status === "partial" && (
+                <Badge variant="outline">
+                  Kısmi metin çıkarıldı
+                </Badge>
+              )}
+
+              {document.extraction_status === "failed" && (
+                <Badge variant="destructive">
+                  Metin çıkarılamadı
+                </Badge>
+              )}
+
+              {(
+                document.processing_status === "failed" ||
+                document.extraction_status === "failed" ||
+                document.extraction_status === "partial"
+              ) && (
+                <ReprocessDocumentButton
+                  documentId={document.id}
+                />
               )}
             </div>
           </CardContent>

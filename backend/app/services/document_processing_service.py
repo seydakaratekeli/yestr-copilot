@@ -51,7 +51,8 @@ def process_document(
         total_character_count = 0
         total_word_count = 0
         total_chunk_count = 0
-        any_page_requires_ocr = False
+        failed_page_count = 0
+        ocr_page_count = 0
 
         for page in extracted_pages:
             page_record = _insert_page(
@@ -61,7 +62,9 @@ def process_document(
             )
 
             if page.requires_ocr:
-                any_page_requires_ocr = True
+                failed_page_count += 1
+            elif page.extraction_method == "ocr":
+                ocr_page_count += 1
 
             total_character_count += (
                 page.character_count
@@ -121,20 +124,26 @@ def process_document(
                             "block_type": "text",
                             "metadata": {
                                 "document_type": (
-                                    document[
-                                        "document_type"
-                                    ]
+                                    document["document_type"]
                                 ),
                                 "original_filename": (
-                                    document[
-                                        "original_filename"
-                                    ]
+                                    document["original_filename"]
                                 ),
                                 "page_number": (
                                     page.page_number
                                 ),
-                                "requires_ocr": (
-                                    page.requires_ocr
+                                "extraction_method": (
+                                    page.extraction_method
+                                ),
+                                "ocr_language": (
+                                    settings.ocr_languages
+                                    if page.extraction_method == "ocr"
+                                    else None
+                                ),
+                                "ocr_dpi": (
+                                    settings.ocr_dpi
+                                    if page.extraction_method == "ocr"
+                                    else None
                                 ),
                             },
                             "embedding_status": (
@@ -152,11 +161,12 @@ def process_document(
 
                 total_chunk_count += len(chunks)
 
-        final_extraction_status = (
-            "pending"
-            if any_page_requires_ocr
-            else "completed"
-        )
+        if failed_page_count == 0:
+            final_extraction_status = "completed"
+        elif failed_page_count < len(extracted_pages):
+            final_extraction_status = "partial"
+        else:
+            final_extraction_status = "failed"
 
         (
             supabase
@@ -184,12 +194,12 @@ def process_document(
                         ).isoformat()
                     ),
                     "native_page_count": (
-    len(extracted_pages)
-    - ocr_page_count
-    - failed_page_count
-),
-"ocr_page_count": ocr_page_count,
-"failed_page_count": failed_page_count,
+                        len(extracted_pages)
+                        - ocr_page_count
+                        - failed_page_count
+                    ),
+                    "ocr_page_count": ocr_page_count,
+                    "failed_page_count": failed_page_count,
                     "error_message": None,
                 }
             )
@@ -303,17 +313,16 @@ def _delete_previous_extraction(
         .execute()
     )
 
-
 def _insert_page(
     *,
     supabase: Client,
     document: dict,
     page,
 ) -> dict:
-    extraction_method = (
-        "native_pdf"
+    processing_status = (
+        "completed"
         if not page.requires_ocr
-        else "native_pdf"
+        else "failed"
     )
 
     response = (
@@ -339,18 +348,32 @@ def _insert_page(
                     page.word_count
                 ),
                 "extraction_method": (
-                    extraction_method
+                    page.extraction_method
                 ),
                 "extraction_confidence": (
-                    1.0
-                    if not page.requires_ocr
-                    else 0.0
+                    page.extraction_confidence
                 ),
                 "requires_ocr": (
                     page.requires_ocr
                 ),
+                "ocr_attempted": (
+                    page.ocr_attempted
+                ),
+                "ocr_error": (
+                    page.ocr_error
+                ),
+                "ocr_language": (
+                    settings.ocr_languages
+                    if page.ocr_attempted
+                    else None
+                ),
+                "ocr_dpi": (
+                    settings.ocr_dpi
+                    if page.ocr_attempted
+                    else None
+                ),
                 "processing_status": (
-                    "completed"
+                    processing_status
                 ),
             }
         )

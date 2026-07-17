@@ -24,6 +24,10 @@ export interface ProjectDocument {
   file_size_bytes: number;
   page_count: number | null;
 
+  native_page_count: number;
+  ocr_page_count: number;
+  failed_page_count: number;
+
   processing_status:
     | "uploaded"
     | "queued"
@@ -35,6 +39,7 @@ export interface ProjectDocument {
     | "pending"
     | "processing"
     | "completed"
+    | "partial"
     | "failed";
 
   error_message: string | null;
@@ -43,11 +48,11 @@ export interface ProjectDocument {
   updated_at: string;
 
   extracted_character_count: number;
-extracted_word_count: number;
-chunk_count: number;
+  extracted_word_count: number;
+  chunk_count: number;
 
-processing_started_at: string | null;
-processing_completed_at: string | null;
+  processing_started_at: string | null;
+  processing_completed_at: string | null;
 }
 
 export interface UploadedDocumentResult {
