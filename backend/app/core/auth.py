@@ -47,17 +47,15 @@ async def get_current_user(
 
         response = supabase.auth.get_user(token)
 
-        user = response.user
-
-        if user is None:
+        if response is None or response.user is None:
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Geçersiz veya süresi dolmuş oturum.",
             )
 
         return AuthenticatedUser(
-            id=str(user.id),
-            email=user.email,
+            id=str(response.user.id),
+            email=response.user.email,
         )
 
     except HTTPException:

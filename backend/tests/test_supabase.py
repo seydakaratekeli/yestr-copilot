@@ -5,8 +5,8 @@ import os
 load_dotenv()
 
 client = create_client(
-    os.getenv("SUPABASE_URL"),
-    os.getenv("SUPABASE_SERVICE_ROLE_KEY"),
+    os.getenv("SUPABASE_URL") or "",
+    os.getenv("SUPABASE_SERVICE_ROLE_KEY") or "",
 )
 
 response = client.table("organizations").select("*").execute()

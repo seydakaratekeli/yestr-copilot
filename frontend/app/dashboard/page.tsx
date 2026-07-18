@@ -14,6 +14,7 @@ import {
   getProjectStatusLabel,
   getProjectTypeLabel,
 } from "@/lib/project-utils";
+import { LogoutButton } from "@/components/auth/logout-button";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -54,12 +55,18 @@ export default async function DashboardPage() {
             <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
           </div>
 
-          <Button asChild>
-            <Link href="/projects/new">
-              <FilePlus2 className="mr-2 h-4 w-4" />
-              Yeni proje oluştur
-            </Link>
-          </Button>
+          <div className="flex items-center gap-4">
+            <Button asChild variant="outline">
+              <Link href="/profile">Profil Ayarları</Link>
+            </Button>
+            <LogoutButton />
+            <Button asChild>
+              <Link href="/projects/new">
+                <FilePlus2 className="mr-2 h-4 w-4" />
+                Yeni proje oluştur
+              </Link>
+            </Button>
+          </div>
         </div>
       </header>
 

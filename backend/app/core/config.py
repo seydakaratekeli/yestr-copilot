@@ -30,6 +30,15 @@ class Settings(BaseSettings):
     ocr_minimum_result_characters: int = 20
     tessdata_path: str | None = None
 
+    embedding_enabled: bool = True
+    embedding_model: str = "intfloat/multilingual-e5-small"
+    embedding_dimension: int = 384
+    embedding_batch_size: int = 16
+
+    minimum_embedding_characters: int = 80
+    minimum_embedding_words: int = 8
+    minimum_text_quality_score: float = 0.55
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
@@ -44,7 +53,7 @@ class Settings(BaseSettings):
 
 @lru_cache
 def get_settings() -> Settings:
-    return Settings()
+    return Settings(**{})
 
 
 settings = get_settings()

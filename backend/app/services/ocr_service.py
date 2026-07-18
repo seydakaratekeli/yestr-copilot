@@ -81,11 +81,11 @@ def extract_page_text_with_ocr(
             tessdata=settings.tessdata_path,
         )
 
-        raw_text = page.get_text(
+        raw_text = str(page.get_text(
             "text",
             textpage=text_page,
             sort=False,
-        ).strip()
+        )).strip()
 
     except Exception as exc:
         raise OcrError(

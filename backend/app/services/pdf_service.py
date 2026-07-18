@@ -62,7 +62,7 @@ def inspect_pdf(
 
         for page_index in range(sampled_page_count):
             page = document.load_page(page_index)
-            page_text = page.get_text("text").strip()
+            page_text = str(page.get_text("text")).strip()
 
             extracted_character_count += len(page_text)
 

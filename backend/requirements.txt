@@ -9,6 +9,7 @@ cryptography==49.0.0
 deprecation==2.1.0
 ecdsa==0.19.2
 fastapi==0.139.0
+email-validator
 greenlet==3.5.3
 h11==0.16.0
 h2==4.3.0
@@ -56,3 +57,5 @@ uvicorn==0.51.0
 watchfiles==1.2.0
 websockets==15.0.1
 yarl==1.24.2
+numpy
+sentence-transformers

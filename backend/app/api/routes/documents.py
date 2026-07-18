@@ -1,8 +1,9 @@
+import typing
+from typing import Any, cast
 from uuid import UUID, uuid4
-from fastapi import BackgroundTasks
-
 from fastapi import (
     APIRouter,
+    BackgroundTasks,
     Depends,
     File,
     Form,
@@ -39,6 +40,9 @@ from app.services.storage_service import (
 )
 from app.services.document_processing_service import (
     process_document,
+)
+from app.services.chunk_embedding_service import (
+    embed_document_chunks,
 )
 
 router = APIRouter()
@@ -321,13 +325,14 @@ async def queue_document_processing(
         .execute()
     )
 
-    if not response.data:
+    data = response.data
+    if not data or not isinstance(data, list):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Belge bulunamadı.",
         )
 
-    document = response.data[0]
+    document = cast(dict[str, Any], data[0])
 
     get_accessible_project(
         supabase=supabase,
@@ -399,13 +404,14 @@ async def get_document_detail(
         .execute()
     )
 
-    if not response.data:
+    data = response.data
+    if not data or not isinstance(data, list):
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Belge bulunamadı.",
         )
 
-    document = response.data[0]
+    document = cast(dict[str, Any], data[0])
 
     get_accessible_project(
         supabase=supabase,
@@ -414,3 +420,51 @@ async def get_document_detail(
     )
 
     return document
+
+
+@router.post(
+    "/documents/{document_id}/embed",
+    status_code=status.HTTP_202_ACCEPTED,
+)
+async def queue_document_embedding(
+    document_id: UUID,
+    background_tasks: BackgroundTasks,
+    current_user: AuthenticatedUser = Depends(
+        get_current_user
+    ),
+) -> dict[str, str]:
+    supabase = get_supabase_admin()
+
+    response = (
+        supabase
+        .table("project_documents")
+        .select("id, project_id")
+        .eq("id", str(document_id))
+        .limit(1)
+        .execute()
+    )
+
+    data = response.data
+    if not data or not isinstance(data, list):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Belge bulunamadı.",
+        )
+
+    document = cast(dict[str, Any], data[0])
+
+    get_accessible_project(
+        supabase=supabase,
+        project_id=document["project_id"],
+        user_id=current_user.id,
+    )
+
+    background_tasks.add_task(
+        embed_document_chunks,
+        document_id=str(document_id),
+    )
+
+    return {
+        "document_id": str(document_id),
+        "status": "embedding_queued",
+    }

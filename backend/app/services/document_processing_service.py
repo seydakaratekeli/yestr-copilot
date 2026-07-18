@@ -1,4 +1,5 @@
 from datetime import datetime, timezone
+from typing import Any, cast
 
 from supabase import Client
 
@@ -12,7 +13,12 @@ from app.services.pdf_extraction_service import (
 from app.services.storage_service import (
     download_file_from_storage,
 )
-
+from app.services.chunk_embedding_service import (
+    embed_document_chunks,
+)
+from app.services.text_quality_service import (
+    evaluate_text_quality,
+)
 
 def process_document(
     *,
@@ -91,6 +97,19 @@ def process_document(
                 chunk_records = []
 
                 for chunk in chunks:
+                    quality = evaluate_text_quality(
+                        chunk.content,
+                        minimum_characters=(
+                            settings.minimum_embedding_characters
+                        ),
+                        minimum_words=(
+                            settings.minimum_embedding_words
+                        ),
+                        acceptance_score=(
+                            settings.minimum_text_quality_score
+                        ),
+                    )
+
                     chunk_records.append(
                         {
                             "document_id": (
@@ -122,6 +141,8 @@ def process_document(
                             ),
                             "section_title": None,
                             "block_type": "text",
+                            "content_quality_score": quality.score,
+                            "is_searchable": quality.is_searchable,
                             "metadata": {
                                 "document_type": (
                                     document["document_type"]
@@ -135,6 +156,7 @@ def process_document(
                                 "extraction_method": (
                                     page.extraction_method
                                 ),
+                                "quality_reasons": quality.reasons,
                                 "ocr_language": (
                                     settings.ocr_languages
                                     if page.extraction_method == "ocr"
@@ -148,6 +170,8 @@ def process_document(
                             },
                             "embedding_status": (
                                 "pending"
+                                if quality.is_searchable
+                                else "skipped"
                             ),
                         }
                     )
@@ -207,6 +231,10 @@ def process_document(
             .execute()
         )
 
+        embed_document_chunks(
+            document_id=document_id,
+        )
+
     except Exception as exc:
         (
             supabase
@@ -260,12 +288,13 @@ def _get_document(
         .execute()
     )
 
-    if not response.data:
+    data = response.data
+    if not data or not isinstance(data, list):
         raise ValueError(
             "İşlenecek belge bulunamadı."
         )
 
-    return response.data[0]
+    return cast(dict[str, Any], data[0])
 
 
 def _mark_processing(
@@ -380,10 +409,11 @@ def _insert_page(
         .execute()
     )
 
-    if not response.data:
+    data = response.data
+    if not data or not isinstance(data, list):
         raise RuntimeError(
             "PDF sayfası veritabanına "
             "kaydedilemedi."
         )
 
-    return response.data[0]
+    return cast(dict[str, Any], data[0])

@@ -1,3 +1,4 @@
+from typing import Any, cast
 from fastapi import HTTPException, status
 from supabase import Client
 
@@ -25,13 +26,13 @@ def get_accessible_project(
             detail="Proje bilgisi okunamadı.",
         ) from exc
 
-    project = response.data
-
-    if not project:
+    if response is None or not response.data:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Proje bulunamadı.",
         )
+
+    project = cast(dict[str, Any], response.data)
 
     # MVP'de organization_id null ve proje sahibi erişimi var.
     if project["created_by"] != user_id:
