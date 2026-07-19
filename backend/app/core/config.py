@@ -39,6 +39,18 @@ class Settings(BaseSettings):
     minimum_embedding_words: int = 8
     minimum_text_quality_score: float = 0.55
 
+    openai_api_key: str | None = None
+
+    llm_enabled: bool = True
+    llm_model: str = "gpt-5-mini"
+
+    rag_search_limit: int = 6
+    rag_minimum_similarity: float = 0.40
+    rag_max_context_characters: int = 12_000
+
+    rag_minimum_source_count: int = 1
+    rag_max_quote_characters: int = 500
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",

@@ -12,6 +12,11 @@ from app.services.embedding_service import (
     EmbeddingError,
     generate_query_embedding,
 )
+
+from app.core.openai_client import (
+    get_openai_client,
+)
+
 router = APIRouter()
 
 
@@ -49,6 +54,44 @@ def embedding_health_check() -> dict:
             "message": str(exc),
         }
 
+@router.get("/llm")
+def llm_health_check() -> dict:
+    if not settings.llm_enabled:
+        return {
+            "status": "disabled",
+        }
+
+    if not settings.openai_api_key:
+        return {
+            "status": "unhealthy",
+            "message": (
+                "OPENAI_API_KEY tanımlanmamış."
+            ),
+        }
+
+    try:
+        client = get_openai_client()
+
+        response = client.responses.create(
+            model=settings.llm_model,
+            input=(
+                "Yalnızca 'hazır' kelimesini yaz."
+            ),
+            store=False,
+        )
+
+        return {
+            "status": "healthy",
+            "model": settings.llm_model,
+            "output": response.output_text,
+        }
+
+    except Exception as exc:
+        return {
+            "status": "unhealthy",
+            "model": settings.llm_model,
+            "message": str(exc),
+        }
 
 @router.get("/ocr")
 def ocr_health_check() -> dict:

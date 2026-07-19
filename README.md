@@ -9,7 +9,7 @@ Yeni bir terminal açın ve sırasıyla şu komutları çalıştırın:
 cd backend
 
 # Sanal ortamı (virtual environment) aktif edin
-.\.venv\Scripts\activate
+
 
 # Gerekli kütüphanelerin yüklü olduğundan emin olmak için (ilk kurulumda veya güncellemelerde)
 pip install -r requirements.txt
@@ -30,3 +30,22 @@ npm install
 npm run dev
 
 Bu işlemleri tamamladıktan sonra; frontend http://localhost:3000 adresinden, backend ise http://localhost:8000 adresinden ayağa kalkmış olacaktır.
+
+## RAG soru-cevap örneği
+
+Backend tarafında LLM sağlayıcısı etkinse:
+
+```bash
+curl -X POST "http://localhost:8000/api/projects/PROJECT_ID/ask" \
+  -H "Authorization: Bearer ACCESS_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "question": "Düşük debili armatür kullanılıyor mu?",
+    "limit": 5,
+    "minimum_similarity": 0.45
+  }'
+```
+
+Yanıt, yalnızca projeye ait aranabilir ve embedding'i tamamlanmış
+chunk'lardan üretilen kaynakları kullanır. Yeterli kanıt bulunamazsa LLM
+çağrılmadan temkinli bir `insufficient_evidence` yanıtı döner.

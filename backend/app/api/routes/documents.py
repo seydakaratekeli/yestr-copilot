@@ -204,7 +204,7 @@ async def upload_project_documents(
                             "queued"
                         ),
                         "extraction_status": (
-                            "pending"
+                            extraction_status
                         ),
                         "error_message": None,
                     }
@@ -239,7 +239,7 @@ async def upload_project_documents(
                         metadata.requires_ocr
                     ),
                     processing_status="queued",
-                    extraction_status="pending",
+                    extraction_status=extraction_status,
                 )
             )
 

@@ -12,7 +12,9 @@ from app.api.routes.search import (
 from app.api.routes.auth import (
     router as auth_router,
 )
-
+from app.api.routes.answers import (
+    router as answers_router,
+)
 api_router = APIRouter()
 
 api_router.include_router(
@@ -35,4 +37,9 @@ api_router.include_router(
     auth_router,
     prefix="/auth",
     tags=["Auth"],
+)
+
+api_router.include_router(
+    answers_router,
+    tags=["Answers"],
 )

@@ -41,3 +41,43 @@ class SemanticSearchResponse(BaseModel):
     query: str
     result_count: int
     results: list[SemanticSearchResult]
+
+
+class AskProjectRequest(BaseModel):
+    question: str = Field(
+        min_length=3,
+        max_length=1000,
+    )
+
+    limit: int | None = Field(
+        default=None,
+        ge=1,
+        le=10,
+    )
+
+    minimum_similarity: float | None = Field(
+        default=None,
+        ge=0.0,
+        le=1.0,
+    )
+
+
+class AskProjectSource(BaseModel):
+    citation: str
+    chunk_id: str
+    document_id: str
+    original_filename: str | None
+    page_number: int
+    quote: str
+    similarity: float
+    extraction_method: str | None
+    is_ocr: bool
+
+
+class AskProjectResponse(BaseModel):
+    question: str
+    answer: str
+    answer_status: str
+    has_sufficient_evidence: bool
+    disclaimer: str
+    sources: list[AskProjectSource]
