@@ -26,7 +26,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+
 import type { Project } from "@/types/project";
+
+import { ProjectQuestionPanel } from
+  "@/components/answers/project-question-panel";
+
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -49,11 +54,33 @@ export default async function ProjectDetailPage({
     redirect("/login");
   }
 
-  const { data, error } = await supabase
-    .from("projects")
-    .select("*")
-    .eq("id", projectId)
-    .single();
+  const [projectResult, documentCountResult] =
+  await Promise.all([
+    supabase
+      .from("projects")
+      .select("*")
+      .eq("id", projectId)
+      .single(),
+
+    supabase
+      .from("project_documents")
+      .select("*", {
+        count: "exact",
+        head: true,
+      })
+      .eq("project_id", projectId)
+      .eq("processing_status", "completed"),
+  ]);
+
+const data = projectResult.data;
+const error = projectResult.error;
+
+if (error || !data) {
+  notFound();
+}
+
+const documentCount =
+  documentCountResult.count ?? 0;
 
   if (error || !data) {
     notFound();
@@ -186,6 +213,24 @@ export default async function ProjectDetailPage({
               </Button>
             </CardContent>
           </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              Proje belge asistanı
+            </h2>
+
+            <p className="text-sm text-muted-foreground">
+              İşlenmiş proje belgeleri üzerinde kaynaklı
+              sorular sorun.
+            </p>
+          </div>
+
+          <ProjectQuestionPanel
+            projectId={project.id}
+            documentCount={documentCount}
+          />
         </section>
       </div>
     </main>

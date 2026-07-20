@@ -9,7 +9,7 @@ Yeni bir terminal açın ve sırasıyla şu komutları çalıştırın:
 cd backend
 
 # Sanal ortamı (virtual environment) aktif edin
-
+.\.venv\Scripts\activate
 
 # Gerekli kütüphanelerin yüklü olduğundan emin olmak için (ilk kurulumda veya güncellemelerde)
 pip install -r requirements.txt
