@@ -1,3 +1,9 @@
+# Yestr Copilot
+
+Yestr Copilot, yapay zeka destekli bir asistan ve RAG (Retrieval-Augmented Generation) tabanlı doküman yönetim platformudur. Sistem, FastAPI tabanlı güçlü bir backend ve modern bir Next.js frontend mimarisinden oluşmaktadır.
+
+## Kurulum ve Çalıştırma
+
 Projeyi ayağa kaldırmak için frontend ve backend olmak üzere iki ayrı terminalde işlem yapmanız gerekiyor.
 
 İşte adım adım çalıştırmanız gereken komutlar:
@@ -31,21 +37,4 @@ npm run dev
 
 Bu işlemleri tamamladıktan sonra; frontend http://localhost:3000 adresinden, backend ise http://localhost:8000 adresinden ayağa kalkmış olacaktır.
 
-## RAG soru-cevap örneği
 
-Backend tarafında LLM sağlayıcısı etkinse:
-
-```bash
-curl -X POST "http://localhost:8000/api/projects/PROJECT_ID/ask" \
-  -H "Authorization: Bearer ACCESS_TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "Düşük debili armatür kullanılıyor mu?",
-    "limit": 5,
-    "minimum_similarity": 0.45
-  }'
-```
-
-Yanıt, yalnızca projeye ait aranabilir ve embedding'i tamamlanmış
-chunk'lardan üretilen kaynakları kullanır. Yeterli kanıt bulunamazsa LLM
-çağrılmadan temkinli bir `insufficient_evidence` yanıtı döner.

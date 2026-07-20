@@ -1,36 +1,53 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Yestr Copilot - Frontend Geliştirme Dokümantasyonu
 
-## Getting Started
+Bu doküman, Yestr Copilot projesinin frontend mimarisi, kullanılan teknolojiler ve geliştirme standartları hakkında temel teknik detayları içermektedir.
 
-First, run the development server:
+## 🛠 Kullanılan Teknolojiler (Tech Stack)
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+### Core
+- **Framework:** [Next.js 16](https://nextjs.org/) (App Router Mimarisi)
+- **Kütüphane:** React 19
+- **Dil:** TypeScript
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+### Stil & UI Bileşenleri
+- **CSS Framework:** [Tailwind CSS v4](https://tailwindcss.com/)
+- **UI Kütüphanesi:** [shadcn/ui](https://ui.shadcn.com/) & Base UI (`@base-ui/react`)
+- **İkonlar:** Lucide React (`lucide-react`)
+- **Grafikler:** Recharts (`recharts`)
+- **Animasyonlar:** `tw-animate-css`
+- **Bildirimler:** Sonner (`sonner`)
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### State Yönetimi & Veri Çekme (Data Fetching)
+- **Global State:** Projede genel olarak harici bir state yönetim kütüphanesi (Zustand, Redux vb.) kullanılmamaktadır. Next.js'in App Router yapısı gereği **React Server Components (RSC)** ve **Server Actions** mimarisi kullanılarak state yönetimi sunucu tarafında (Server-side) veya Hook'lar aracılığıyla istemci tarafında (Client-side) yönetilmektedir.
+- **HTTP İstemcisi:** Axios (`axios`) üzerinden backend (FastAPI) ile haberleşilmektedir.
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Form Yönetimi & Doğrulama (Validation)
+- **Form Kütüphanesi:** React Hook Form (`react-hook-form`)
+- **Şema Doğrulaması:** Zod (`zod` & `@hookform/resolvers`)
 
-## Learn More
+### Kimlik Doğrulama & Veritabanı Servisleri (BaaS)
+- **Platform:** [Supabase](https://supabase.com/)
+- **Kütüphaneler:** `@supabase/supabase-js`, `@supabase/ssr` (Next.js Server-Side Rendering entegrasyonu için)
 
-To learn more about Next.js, take a look at the following resources:
+---
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 📁 Klasör Yapısı (Folder Structure)
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+Projenin `frontend/` klasörü aşağıdaki standart modern Next.js yapısını takip etmektedir:
 
-## Deploy on Vercel
+- `app/`: Next.js App Router sayfaları (`page.tsx`), layout yapıları (`layout.tsx`) ve Server Actions.
+- `components/`: Tekrar kullanılabilir UI bileşenleri. Genellikle `shadcn/ui` bileşenleri `components/ui/` altında yer alır.
+- `lib/`: Yardımcı (utility) fonksiyonlar, Supabase istemci/sunucu konfigürasyonları ve ortak ayarlar.
+- `services/`: Backend API'ları ile haberleşen fonksiyonların ve servis çağrılarının bulunduğu dizin.
+- `types/`: Projede kullanılan ortak TypeScript tipleri (interfaces, types).
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 🚀 Geliştirme Komutları
+
+Geliştirme ortamını başlatmak için ana README dosyasındaki adımları izleyebilirsiniz. Frontend özelinde kullanılan bazı temel npm scriptleri:
+
+- `npm run dev` : Geliştirme (development) ortamını başlatır (http://localhost:3000).
+- `npm run build` : Projeyi production ortamı için derler.
+- `npm run start` : Derlenmiş production uygulamasını başlatır.
+- `npm run lint` : ESLint kullanarak kod kalitesini ve standartlarını denetler.
