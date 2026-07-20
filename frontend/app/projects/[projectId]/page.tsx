@@ -29,9 +29,8 @@ import {
 
 import type { Project } from "@/types/project";
 
-import { ProjectQuestionPanel } from
-  "@/components/answers/project-question-panel";
-
+import { ProjectChatPanel } from
+  "@/components/answers/project-chat-panel";
 
 interface ProjectDetailPageProps {
   params: Promise<{
@@ -55,32 +54,32 @@ export default async function ProjectDetailPage({
   }
 
   const [projectResult, documentCountResult] =
-  await Promise.all([
-    supabase
-      .from("projects")
-      .select("*")
-      .eq("id", projectId)
-      .single(),
+    await Promise.all([
+      supabase
+        .from("projects")
+        .select("*")
+        .eq("id", projectId)
+        .single(),
 
-    supabase
-      .from("project_documents")
-      .select("*", {
-        count: "exact",
-        head: true,
-      })
-      .eq("project_id", projectId)
-      .eq("processing_status", "completed"),
-  ]);
+      supabase
+        .from("project_documents")
+        .select("*", {
+          count: "exact",
+          head: true,
+        })
+        .eq("project_id", projectId)
+        .eq("processing_status", "completed"),
+    ]);
 
-const data = projectResult.data;
-const error = projectResult.error;
+  const data = projectResult.data;
+  const error = projectResult.error;
 
-if (error || !data) {
-  notFound();
-}
+  if (error || !data) {
+    notFound();
+  }
 
-const documentCount =
-  documentCountResult.count ?? 0;
+  const documentCount =
+    documentCountResult.count ?? 0;
 
   if (error || !data) {
     notFound();
@@ -205,7 +204,7 @@ const documentCount =
                 Analize başlamak için mimari proje, teknik şartname veya enerji raporu gibi PDF belgelerini yükleyin.
               </p>
 
-              <Button asChild>
+              <Button asChild className="w-full sm:w-auto shadow-sm">
                 <Link href={`/projects/${project.id}/documents`}>
                   <FileUp className="mr-2 h-4 w-4" />
                   İlk belgeyi yükle
@@ -226,8 +225,7 @@ const documentCount =
               sorular sorun.
             </p>
           </div>
-
-          <ProjectQuestionPanel
+          <ProjectChatPanel
             projectId={project.id}
             documentCount={documentCount}
           />

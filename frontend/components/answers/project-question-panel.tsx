@@ -282,8 +282,8 @@ export function ProjectQuestionPanel({
                   <Button
                     key={exampleQuestion}
                     type="button"
-                    variant="outline"
-                    size="sm"
+                    variant="secondary"
+                    className="rounded-full text-xs font-medium hover:bg-primary/10 hover:text-primary transition-colors border shadow-sm"
                     disabled={isLoading}
                     onClick={() =>
                       selectExampleQuestion(

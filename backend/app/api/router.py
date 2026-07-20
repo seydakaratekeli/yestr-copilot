@@ -15,6 +15,10 @@ from app.api.routes.auth import (
 from app.api.routes.answers import (
     router as answers_router,
 )
+from app.api.routes.conversations import (
+    router as conversations_router,
+)
+
 api_router = APIRouter()
 
 api_router.include_router(
@@ -42,4 +46,8 @@ api_router.include_router(
 api_router.include_router(
     answers_router,
     tags=["Answers"],
+)
+api_router.include_router(
+    conversations_router,
+    tags=["Conversations"],
 )

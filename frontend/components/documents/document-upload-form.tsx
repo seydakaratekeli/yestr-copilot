@@ -293,16 +293,18 @@ export function DocumentUploadForm({
           <button
             type="button"
             onClick={() => inputRef.current?.click()}
-            className="flex min-h-48 w-full flex-col items-center justify-center rounded-lg border-2 border-dashed p-6 text-center transition hover:border-primary hover:bg-muted/40"
+            className="group flex min-h-48 w-full flex-col items-center justify-center rounded-xl border-2 border-dashed border-muted-foreground/25 bg-muted/10 p-8 text-center transition-all hover:border-primary/50 hover:bg-primary/5 active:scale-[0.98]"
           >
-            <Upload className="mb-4 h-10 w-10 text-muted-foreground" />
+            <div className="rounded-full bg-primary/10 p-4 mb-4 transition-transform group-hover:scale-110 group-hover:bg-primary/20">
+              <Upload className="h-8 w-8 text-primary" />
+            </div>
 
-            <span className="font-semibold">
-              PDF belgelerini seçin
+            <span className="text-lg font-semibold text-foreground">
+              PDF belgelerini seçin veya sürükleyin
             </span>
 
-            <span className="mt-2 text-sm text-muted-foreground">
-              En fazla 10 dosya, dosya başına 25 MB
+            <span className="mt-2 text-sm text-muted-foreground max-w-sm">
+              En fazla 10 dosya yükleyebilirsiniz. Dosya başına maksimum boyut 25 MB'dır.
             </span>
           </button>
         </CardContent>
@@ -351,9 +353,12 @@ export function DocumentUploadForm({
             </Card>
           ))
         ) : (
-          <Card>
-            <CardContent className="flex min-h-32 items-center justify-center text-center">
-              <p className="text-sm text-muted-foreground">
+          <Card className="border-dashed border-2 bg-muted/5">
+            <CardContent className="flex min-h-[200px] flex-col items-center justify-center text-center p-8">
+              <div className="rounded-full bg-muted p-4 mb-4">
+                <FileText className="h-8 w-8 text-muted-foreground/50" />
+              </div>
+              <p className="text-base text-muted-foreground max-w-md">
                 PDF seçmek için üstteki alana tıklayın. Dosyaları seçtikten sonra her birine belge türü atayın ve <span className="font-medium text-foreground">Belgeleri kaydet</span> butonuyla yükleyin.
               </p>
             </CardContent>
@@ -373,7 +378,7 @@ export function DocumentUploadForm({
             </p>
           </div>
 
-          <Button type="submit" disabled={isUploading}>
+          <Button type="submit" size="lg" className="w-full sm:w-auto font-medium shadow-md" disabled={isUploading}>
             {isUploading ? (
               <>
                 <LoaderCircle className="mr-2 h-4 w-4 animate-spin" />
@@ -381,7 +386,7 @@ export function DocumentUploadForm({
               </>
             ) : (
               <>
-                <Upload className="mr-2 h-4 w-4" />
+                <Upload className="mr-2 h-5 w-5" />
                 Belgeleri kaydet ve yükle
               </>
             )}
