@@ -40,7 +40,9 @@ class ConversationMessage(BaseModel):
     error_message: str | None
 
     created_at: datetime
-
+    resolved_query: str | None
+    context_message_ids: list[str]
+    is_follow_up: bool
 
 class ConversationDetail(BaseModel):
     conversation: ConversationSummary

@@ -25,7 +25,9 @@ class LlmAnswerError(RuntimeError):
 def generate_grounded_answer(
     *,
     question: str,
+    resolved_query: str,
     sources: list[RagSource],
+    conversation_context: str | None = None,
 ) -> LlmGroundedAnswer:
     if not settings.llm_enabled:
         raise LlmAnswerError(
@@ -53,14 +55,27 @@ def generate_grounded_answer(
 
     context = render_rag_context(sources)
 
+    context_section = (
+        conversation_context
+        if conversation_context
+        else "Konuşma bağlamı bulunmuyor."
+    )
+
     user_input = f"""
-KULLANICI SORUSU:
+KONUŞMA BAĞLAMI:
+{context_section}
+
+KULLANICININ GÜNCEL SORUSU:
 {question}
+
+BELGE ARAMASINDA KULLANILAN BAĞIMSIZ SORGU:
+{resolved_query}
 
 KAYNAKLAR:
 {context}
 
-Yalnızca yukarıdaki kaynaklara dayanarak cevap ver.
+Yalnızca yukarıdaki proje belge kaynaklarına dayanarak
+güncel kullanıcı sorusunu cevapla.
 """
 
     client = get_openai_client()

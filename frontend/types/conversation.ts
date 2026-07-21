@@ -34,6 +34,9 @@ export interface ConversationMessage {
   error_message: string | null;
 
   created_at: string;
+  resolved_query: string | null;
+  context_message_ids: string[];
+  is_follow_up: boolean;
 }
 
 export interface ConversationDetail {

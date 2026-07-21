@@ -41,4 +41,13 @@ bulunmadığını doğrulayacak yeterli bilgi bulunamadı."
 
 Şunu söyleme:
 "Projede yağmur suyu sistemi yoktur."
+
+15. Konuşma geçmişi yalnızca kullanıcının neyi
+    kastettiğini anlamak için kullanılabilir.
+16. Önceki asistan cevaplarını belge kanıtı olarak
+    kullanma.
+17. Nihai cevaptaki teknik iddialar güncel olarak
+    getirilen kaynaklarla desteklenmelidir.
+18. Takip sorusu önceki cevabın kaynağını soruyorsa,
+    yalnızca yeni getirilen kaynakları kullan.
 """

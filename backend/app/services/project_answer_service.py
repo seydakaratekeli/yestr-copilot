@@ -26,6 +26,8 @@ def answer_project_question(
     supabase: Client,
     project_id: str,
     question: str,
+    search_query: str | None = None,
+    conversation_context: str | None = None,
     search_limit: int | None = None,
     minimum_similarity: float | None = None,
 ) -> ProjectQuestionResponse:
@@ -40,10 +42,16 @@ def answer_project_question(
         else settings.rag_minimum_similarity
     )
 
+    effective_search_query = (
+        search_query.strip()
+        if search_query
+        else question.strip()
+    )
+
     chunks = search_project_chunks(
         supabase=supabase,
         project_id=project_id,
-        query=question,
+        query=effective_search_query,
         limit=final_search_limit,
         minimum_similarity=(
             final_minimum_similarity
@@ -60,7 +68,13 @@ def answer_project_question(
 
     llm_answer = generate_grounded_answer(
         question=question,
+        resolved_query=(
+            effective_search_query
+        ),
         sources=sources,
+        conversation_context=(
+            conversation_context
+        ),
     )
 
     citations = validate_and_build_citations(

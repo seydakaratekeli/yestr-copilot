@@ -41,4 +41,15 @@ def map_conversation_message(
         ),
         error_message=row.get("error_message"),
         created_at=row["created_at"],
+
+        resolved_query=row.get(
+            "resolved_query"
+        ),
+        context_message_ids=(
+            row.get("context_message_ids")
+             or []
+        ),
+        is_follow_up=bool(
+             row.get("is_follow_up", False)
+        ),
     )

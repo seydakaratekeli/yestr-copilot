@@ -235,6 +235,9 @@ export function ProjectChatPanel({
           error_message: null,
           created_at:
             new Date().toISOString(),
+          resolved_query: null,
+          context_message_ids: [],
+          is_follow_up: false,
         };
 
       setMessages((current) => [
@@ -499,6 +502,29 @@ function ChatMessage({
         <p className="whitespace-pre-wrap text-sm leading-6">
           {message.content}
         </p>
+
+        {isUser && message.is_follow_up && (
+          <Badge
+            variant="secondary"
+            className="mt-2"
+          >
+            Takip sorusu
+          </Badge>
+        )}
+
+        {isUser &&
+          message.is_follow_up &&
+          message.resolved_query && (
+            <details className="mt-3 text-xs">
+              <summary className="cursor-pointer opacity-80">
+                Arama sorgusunu göster
+              </summary>
+
+              <p className="mt-2 rounded bg-background/20 p-2">
+                {message.resolved_query}
+              </p>
+            </details>
+          )}
 
         {!isUser &&
           message.answer_status && (

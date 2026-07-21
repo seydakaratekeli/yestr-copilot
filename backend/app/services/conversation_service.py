@@ -205,6 +205,33 @@ def update_conversation_title_from_question(
         .execute()
     )
 
+def update_user_message_resolution(
+    *,
+    supabase: Client,
+    message_id: str,
+    resolved_query: str,
+    context_message_ids: list[str],
+    is_follow_up: bool,
+) -> None:
+    (
+        supabase
+        .table("conversation_messages")
+        .update(
+            {
+                "resolved_query": (
+                    resolved_query
+                ),
+                "context_message_ids": (
+                    context_message_ids
+                ),
+                "is_follow_up": (
+                    is_follow_up
+                ),
+            }
+        )
+        .eq("id", message_id)
+        .execute()
+    )
 
 def _touch_conversation(
     *,

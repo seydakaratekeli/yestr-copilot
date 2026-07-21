@@ -36,7 +36,17 @@ from app.services.project_access_service import (
 from app.services.project_answer_service import (
     answer_project_question,
 )
-
+from app.services.conversation_context_service import (
+    get_recent_conversation_context,
+    render_conversation_context,
+)
+from app.services.question_resolution_service import (
+    QuestionResolutionError,
+    resolve_conversation_question,
+)
+from app.services.conversation_service import (
+    update_user_message_resolution,
+)
 
 router = APIRouter()
 
@@ -197,11 +207,76 @@ async def ask_conversation_question(
         question=request.question,
     )
 
+    context_messages = (
+        get_recent_conversation_context(
+            supabase=supabase,
+            conversation_id=(
+                str(conversation_id)
+            ),
+            exclude_message_id=(
+                user_message_row["id"]
+            ),
+        )
+    )
+
+    try:
+        resolution = (
+            resolve_conversation_question(
+                question=request.question,
+                context_messages=(
+                    context_messages
+                ),
+            )
+        )
+    except QuestionResolutionError as exc:
+        print(
+            "Question resolution warning:",
+            repr(exc),
+        )
+
+        from app.schemas.question_resolution import (
+            ResolvedConversationQuestion,
+        )
+
+        resolution = (
+            ResolvedConversationQuestion(
+                is_follow_up=False,
+                resolved_query=(
+                    request.question
+                ),
+                referenced_message_ids=[],
+                resolution_confidence=0.0,
+            )
+        )
+
+    update_user_message_resolution(
+        supabase=supabase,
+        message_id=user_message_row["id"],
+        resolved_query=(
+            resolution.resolved_query
+        ),
+        context_message_ids=(
+            resolution
+            .referenced_message_ids
+        ),
+        is_follow_up=(
+            resolution.is_follow_up
+        ),
+    )
+
     try:
         answer = answer_project_question(
             supabase=supabase,
             project_id=str(project_id),
             question=request.question,
+            search_query=(
+                resolution.resolved_query
+            ),
+            conversation_context=(
+                render_conversation_context(
+                    context_messages
+                )
+            ),
             search_limit=request.search_limit,
             minimum_similarity=(
                 request.minimum_similarity

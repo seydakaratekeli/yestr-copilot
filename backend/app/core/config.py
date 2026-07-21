@@ -51,6 +51,12 @@ class Settings(BaseSettings):
     rag_minimum_source_count: int = 1
     rag_max_quote_characters: int = 500
 
+    conversation_context_message_limit: int = 6
+    conversation_context_character_limit: int = 6000
+
+    question_resolution_enabled: bool = True
+    question_resolution_model: str = "gpt-5-mini"
+
     model_config = SettingsConfigDict(
         env_file=".env",
         env_file_encoding="utf-8",
