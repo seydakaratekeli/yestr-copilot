@@ -5,6 +5,9 @@ from supabase import Client
 from app.services.embedding_service import (
     generate_query_embedding,
 )
+from app.services.retry_service import (
+    retry_transient,
+)
 
 
 class SemanticSearchError(RuntimeError):
@@ -42,17 +45,22 @@ def search_project_chunks(
     )
 
     try:
-        response = supabase.rpc(
-            "match_project_chunks",
-            {
-                "query_embedding": query_embedding,
-                "target_project_id": project_id,
-                "match_count": limit,
-                "minimum_similarity": (
-                    minimum_similarity
-                ),
-            },
-        ).execute()
+        response = retry_transient(
+            lambda: supabase.rpc(
+                "match_project_chunks",
+                {
+                    "query_embedding": query_embedding,
+                    "target_project_id": project_id,
+                    "match_count": limit,
+                    "minimum_similarity": (
+                        minimum_similarity
+                    ),
+                },
+            ).execute(),
+            operation_name=(
+                "Proje parçalarında semantik arama"
+            ),
+        )
     except Exception as exc:
         raise SemanticSearchError(
             "Semantik arama gerçekleştirilemedi."

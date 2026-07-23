@@ -25,6 +25,9 @@ from app.services.project_access_service import (
 from app.services.project_evaluation_service import (
     process_project_evaluation,
 )
+from app.services.retry_service import (
+    retry_transient,
+)
 
 router = APIRouter()
 
@@ -43,16 +46,19 @@ async def list_criterion_sets(
 ) -> list[dict]:
     supabase = get_supabase_admin()
 
-    response = (
-        supabase
-        .table("criterion_sets")
-        .select(
-            "id, code, name, version, "
-            "description, status"
-        )
-        .eq("status", "published")
-        .order("created_at", desc=True)
-        .execute()
+    response = retry_transient(
+        lambda: (
+            supabase
+            .table("criterion_sets")
+            .select(
+                "id, code, name, version, "
+                "description, status"
+            )
+            .eq("status", "published")
+            .order("created_at", desc=True)
+            .execute()
+        ),
+        operation_name="Kriter setlerini listeleme",
     )
 
     return _as_records(response.data)
@@ -78,17 +84,20 @@ async def start_project_evaluation(
         user_id=current_user.id,
     )
 
-    criterion_set_response = (
-        supabase
-        .table("criterion_sets")
-        .select("id, status")
-        .eq(
-            "id",
-            request.criterion_set_id,
-        )
-        .eq("status", "published")
-        .limit(1)
-        .execute()
+    criterion_set_response = retry_transient(
+        lambda: (
+            supabase
+            .table("criterion_sets")
+            .select("id, status")
+            .eq(
+                "id",
+                request.criterion_set_id,
+            )
+            .eq("status", "published")
+            .limit(1)
+            .execute()
+        ),
+        operation_name="Kriter setini doğrulama",
     )
 
     if not criterion_set_response.data:
@@ -155,22 +164,25 @@ async def list_project_evaluations(
         user_id=current_user.id,
     )
 
-    response = (
-        supabase
-        .table("project_evaluations")
-        .select(
-            (
-                "id, project_id, criterion_set_id, "
-                "status, total_score, maximum_score, "
-                "score_percentage, satisfied_count, "
-                "not_satisfied_count, uncertain_count, "
-                "manual_review_count, started_at, "
-                "completed_at, error_message, created_at"
+    response = retry_transient(
+        lambda: (
+            supabase
+            .table("project_evaluations")
+            .select(
+                (
+                    "id, project_id, criterion_set_id, "
+                    "status, total_score, maximum_score, "
+                    "score_percentage, satisfied_count, "
+                    "not_satisfied_count, uncertain_count, "
+                    "manual_review_count, started_at, "
+                    "completed_at, error_message, created_at"
+                )
             )
-        )
-        .eq("project_id", str(project_id))
-        .order("created_at", desc=True)
-        .execute()
+            .eq("project_id", str(project_id))
+            .order("created_at", desc=True)
+            .execute()
+        ),
+        operation_name="Proje değerlendirmelerini listeleme",
     )
 
     return _as_records(response.data)
@@ -194,14 +206,17 @@ async def get_project_evaluation_detail(
         user_id=current_user.id,
     )
 
-    evaluation_response = (
-        supabase
-        .table("project_evaluations")
-        .select("*")
-        .eq("id", str(evaluation_id))
-        .eq("project_id", str(project_id))
-        .limit(1)
-        .execute()
+    evaluation_response = retry_transient(
+        lambda: (
+            supabase
+            .table("project_evaluations")
+            .select("*")
+            .eq("id", str(evaluation_id))
+            .eq("project_id", str(project_id))
+            .limit(1)
+            .execute()
+        ),
+        operation_name="Değerlendirme detayını okuma",
     )
 
     if not evaluation_response.data:
@@ -210,32 +225,35 @@ async def get_project_evaluation_detail(
             detail="Değerlendirme bulunamadı.",
         )
 
-    results_response = (
-        supabase
-        .table("project_criterion_results")
-        .select(
-            (
-                "id, evaluation_id, project_id, "
-                "criterion_id, rule_id, result_status, "
-                "awarded_score, maximum_score, "
-                "extracted_values, citations, "
-                "evidence_summary, missing_information, "
-                "warnings, confidence, "
-                "requires_manual_review, created_at, "
-                "criteria("
-                "code, title, category_code, "
-                "category_name, display_order"
-                ")"
+    results_response = retry_transient(
+        lambda: (
+            supabase
+            .table("project_criterion_results")
+            .select(
+                (
+                    "id, evaluation_id, project_id, "
+                    "criterion_id, rule_id, result_status, "
+                    "awarded_score, maximum_score, "
+                    "extracted_values, citations, "
+                    "evidence_summary, missing_information, "
+                    "warnings, confidence, "
+                    "requires_manual_review, created_at, "
+                    "criteria("
+                    "code, title, category_code, "
+                    "category_name, display_order"
+                    ")"
+                )
             )
-        )
-        .eq(
-            "evaluation_id",
-            str(evaluation_id),
-        )
-        .order(
-            "criteria(display_order)"
-        )
-        .execute()
+            .eq(
+                "evaluation_id",
+                str(evaluation_id),
+            )
+            .order(
+                "criteria(display_order)"
+            )
+            .execute()
+        ),
+        operation_name="Kriter sonuçlarını okuma",
     )
 
     evaluation = _as_records(
@@ -268,14 +286,17 @@ async def rerun_project_evaluation(
         user_id=current_user.id,
     )
 
-    response = (
-        supabase
-        .table("project_evaluations")
-        .select("id, project_id, status")
-        .eq("id", str(evaluation_id))
-        .eq("project_id", str(project_id))
-        .limit(1)
-        .execute()
+    response = retry_transient(
+        lambda: (
+            supabase
+            .table("project_evaluations")
+            .select("id, project_id, status")
+            .eq("id", str(evaluation_id))
+            .eq("project_id", str(project_id))
+            .limit(1)
+            .execute()
+        ),
+        operation_name="Yeniden çalıştırılacak değerlendirmeyi okuma",
     )
 
     if not response.data:
@@ -297,17 +318,20 @@ async def rerun_project_evaluation(
             ),
         )
 
-    (
-        supabase
-        .table("project_evaluations")
-        .update(
-            {
-                "status": "queued",
-                "error_message": None,
-            }
-        )
-        .eq("id", str(evaluation_id))
-        .execute()
+    retry_transient(
+        lambda: (
+            supabase
+            .table("project_evaluations")
+            .update(
+                {
+                    "status": "queued",
+                    "error_message": None,
+                }
+            )
+            .eq("id", str(evaluation_id))
+            .execute()
+        ),
+        operation_name="Değerlendirmeyi kuyruğa alma",
     )
 
     background_tasks.add_task(

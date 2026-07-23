@@ -15,6 +15,9 @@ from app.services.rag_context_service import (
     RagSource,
     render_rag_context,
 )
+from app.services.retry_service import (
+    retry_transient,
+)
 
 
 class CriterionEvidenceError(RuntimeError):
@@ -96,18 +99,19 @@ Puan veya sertifikasyon kararı üretme.
     client = get_openai_client()
 
     try:
-        response = client.responses.create(
-            model=settings.llm_model,
-            instructions=(
-                CRITERION_EVIDENCE_INSTRUCTIONS
-            ),
-            input=input_text,
-            text={
-                "format": {
-                    "type": "json_schema",
-                    "name": "criterion_evidence",
-                    "strict": True,
-                    "schema": {
+        response = retry_transient(
+            lambda: client.responses.create(
+                model=settings.llm_model,
+                instructions=(
+                    CRITERION_EVIDENCE_INSTRUCTIONS
+                ),
+                input=input_text,
+                text={
+                    "format": {
+                        "type": "json_schema",
+                        "name": "criterion_evidence",
+                        "strict": True,
+                        "schema": {
                         "type": "object",
                         "additionalProperties": False,
                         "properties": {
@@ -159,10 +163,12 @@ Puan veya sertifikasyon kararı üretme.
                             "warnings",
                             "confidence",
                         ],
-                    },
-                }
-            },
-            store=False,
+                        },
+                    }
+                },
+                store=False,
+            ),
+            operation_name="LLM kriter kanıtı çıkarımı",
         )
 
         parsed = json.loads(response.output_text)

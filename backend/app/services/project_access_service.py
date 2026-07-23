@@ -2,6 +2,10 @@ from typing import Any, cast
 from fastapi import HTTPException, status
 from supabase import Client
 
+from app.services.retry_service import (
+    retry_transient,
+)
+
 
 def get_accessible_project(
     *,
@@ -10,15 +14,18 @@ def get_accessible_project(
     user_id: str,
 ) -> dict:
     try:
-        response = (
-            supabase
-            .table("projects")
-            .select(
-                "id, created_by, organization_id, status"
-            )
-            .eq("id", project_id)
-            .maybe_single()
-            .execute()
+        response = retry_transient(
+            lambda: (
+                supabase
+                .table("projects")
+                .select(
+                    "id, created_by, organization_id, status"
+                )
+                .eq("id", project_id)
+                .maybe_single()
+                .execute()
+            ),
+            operation_name="Proje erişim bilgisini okuma",
         )
     except Exception as exc:
         raise HTTPException(
