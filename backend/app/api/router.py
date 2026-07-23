@@ -18,6 +18,10 @@ from app.api.routes.answers import (
 from app.api.routes.conversations import (
     router as conversations_router,
 )
+from app.api.routes.evaluations import (
+    router as evaluations_router,
+)
+
 
 api_router = APIRouter()
 
@@ -50,4 +54,8 @@ api_router.include_router(
 api_router.include_router(
     conversations_router,
     tags=["Conversations"],
+)
+api_router.include_router(
+    evaluations_router,
+    tags=["Evaluations"],
 )

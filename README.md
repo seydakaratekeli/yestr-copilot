@@ -32,6 +32,8 @@ cd frontend
 # Gerekli kütüphanelerin yüklü olduğundan emin olmak için (ilk kurulumda veya güncellemelerde)
 npm install
 
+
+
 # Next.js uygulamasını geliştirme modunda başlatın
 npm run dev
 
