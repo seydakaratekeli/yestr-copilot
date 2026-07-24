@@ -127,3 +127,25 @@ export async function getEvaluation(
 
   return parseResponse(response);
 }
+
+export async function rerunEvaluation(
+  projectId: string,
+  evaluationId: string,
+): Promise<{
+  evaluation_id: string;
+  status: string;
+}> {
+  const token = await getToken();
+
+  const response = await fetch(
+    `${getApiUrl()}/projects/${projectId}/evaluations/${evaluationId}/rerun`,
+    {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    },
+  );
+
+  return parseResponse(response);
+}

@@ -13,6 +13,9 @@ import {
   formatArea,
   formatCurrency,
   formatDate,
+  getBuildingTypeLabel,
+  getCertificateLevelLabel,
+  getFacadeDirectionLabel,
   getProjectStatusLabel,
   getProjectTypeLabel,
 } from "@/lib/project-utils";
@@ -26,6 +29,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 
+import { ProjectEvaluationPanel } from
+  "@/components/evaluations/project-evaluation-panel";
 
 import type { Project } from "@/types/project";
 
@@ -61,6 +66,8 @@ export default async function ProjectDetailPage({
         .eq("id", projectId)
         .single(),
 
+      // TODO: İleride daha doğru kontrol için chunk_count > 0 koşulu eklenebilir
+      // (Kısmi OCR sonucu olup chunk içeren belgeleri dahil etmek için)
       supabase
         .from("project_documents")
         .select("*", {
@@ -148,7 +155,7 @@ export default async function ProjectDetailPage({
             </CardHeader>
 
             <CardContent>
-              <p className="font-semibold">{project.building_type || "Belirtilmedi"}</p>
+              <p className="font-semibold">{getBuildingTypeLabel(project.building_type)}</p>
             </CardContent>
           </Card>
 
@@ -184,11 +191,11 @@ export default async function ProjectDetailPage({
               <DetailRow label="Parsel alanı" value={formatArea(project.parcel_area)} />
               <DetailRow
                 label="Ana cephe yönü"
-                value={project.main_facade_direction || "Belirtilmedi"}
+                value={getFacadeDirectionLabel(project.main_facade_direction)}
               />
               <DetailRow
                 label="Hedef sertifika seviyesi"
-                value={project.target_certificate_level || "Belirtilmedi"}
+                value={getCertificateLevelLabel(project.target_certificate_level)}
               />
               <DetailRow label="Tahmini bütçe" value={formatCurrency(project.estimated_budget)} />
             </CardContent>
@@ -212,6 +219,24 @@ export default async function ProjectDetailPage({
               </Button>
             </CardContent>
           </Card>
+        </section>
+
+        <section className="space-y-4">
+          <div>
+            <h2 className="text-xl font-semibold">
+              Otomatik ön değerlendirme
+            </h2>
+
+            <p className="text-sm text-muted-foreground">
+              Proje belgelerini temsili kriter setine
+              göre analiz edin.
+            </p>
+          </div>
+
+          <ProjectEvaluationPanel
+            projectId={project.id}
+            documentCount={documentCount}
+          />
         </section>
 
         <section className="space-y-4">

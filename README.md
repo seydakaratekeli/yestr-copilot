@@ -33,7 +33,6 @@ cd frontend
 npm install
 
 
-
 # Next.js uygulamasını geliştirme modunda başlatın
 npm run dev
 

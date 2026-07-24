@@ -1,4 +1,5 @@
 import json
+import re
 from typing import Any
 
 from pydantic import ValidationError
@@ -322,7 +323,9 @@ def _sanitize_extraction(
         evidence_status=evidence_status,
         extracted_values=extracted_values,
         evidence_summary=(
-            extraction.evidence_summary
+            _sanitize_evidence_summary(
+                extraction.evidence_summary
+            )
         ),
         citation_ids=valid_citation_ids,
         missing_information=(
@@ -332,4 +335,44 @@ def _sanitize_extraction(
             dict.fromkeys(warnings)
         ),
         confidence=round(confidence, 4),
+    )
+
+
+def _sanitize_evidence_summary(
+    summary: str,
+) -> str:
+    internal_processing_markers = (
+        "beklenen gösterim",
+        "eşdeğer olacak şekilde",
+        "eşdeğer olarak",
+        "olarak kaydedil",
+        "normalize edil",
+        "normalleştir",
+        "birim dönüşümü yapılma",
+        "sayısal birim dönüşümü",
+    )
+
+    sentences = re.split(
+        r"(?<=[.!?])\s+",
+        summary.strip(),
+    )
+
+    source_only_sentences = [
+        sentence
+        for sentence in sentences
+        if sentence
+        and not any(
+            marker in sentence.casefold()
+            for marker in internal_processing_markers
+        )
+    ]
+
+    if source_only_sentences:
+        return " ".join(
+            source_only_sentences
+        )
+
+    return (
+        "Kaynakta kriterle ilişkili teknik bilgi "
+        "yer almaktadır."
     )

@@ -73,6 +73,30 @@ def test_numeric_threshold_accepts_expected_unit():
     assert result.awarded_score == 3
 
 
+def test_numeric_threshold_rejects_value_above_limit():
+    result = evaluate_rule(
+        rule_type="numeric_threshold",
+        rule_config={
+            "field": "maximum_flow_rate_l_min",
+            "unit_field": "maximum_flow_rate_unit",
+            "expected_unit": "L/min",
+            "operator": "less_than_or_equal",
+            "threshold": 5,
+            "pass_score": 3,
+            "fail_score": 0,
+        },
+        extracted_values={
+            "maximum_flow_rate_l_min": 8,
+            "maximum_flow_rate_unit": "L/min",
+        },
+        maximum_score=3,
+        evidence_status="found",
+    )
+
+    assert result.status == "not_satisfied"
+    assert result.awarded_score == 0
+
+
 def test_numeric_threshold_requires_review_for_wrong_unit():
     result = evaluate_rule(
         rule_type="numeric_threshold",

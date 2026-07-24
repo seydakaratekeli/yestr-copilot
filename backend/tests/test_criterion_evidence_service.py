@@ -1,5 +1,6 @@
 from app.services.criterion_evidence_service import (
     _build_extracted_values_schema,
+    _sanitize_evidence_summary,
 )
 
 
@@ -57,3 +58,16 @@ def test_rule_without_field_builds_empty_closed_schema():
         "properties": {},
         "required": [],
     }
+
+
+def test_evidence_summary_removes_unit_normalization_commentary():
+    summary = (
+        "Kaynakta birim 'litre/dakika' olarak verilmiştir. "
+        "Beklenen gösterim 'L/min' olduğu için birim gösterimi "
+        "eşdeğer olacak şekilde 'L/min' olarak kaydedilmiştir. "
+        "Sayısal birim dönüşümü yapılmamıştır."
+    )
+
+    assert _sanitize_evidence_summary(summary) == (
+        "Kaynakta birim 'litre/dakika' olarak verilmiştir."
+    )

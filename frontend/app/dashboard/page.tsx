@@ -11,6 +11,7 @@ import {
 import { createClient } from "@/lib/supabase/server";
 import {
   formatDate,
+  getBuildingTypeLabel,
   getProjectStatusLabel,
   getProjectTypeLabel,
 } from "@/lib/project-utils";
@@ -148,7 +149,7 @@ export default async function DashboardPage() {
                       </div>
                       <div className="flex items-center gap-2">
                         <Building2 className="h-4 w-4" />
-                        <span>{project.building_type || "Belirtilmedi"}</span>
+                        <span>{getBuildingTypeLabel(project.building_type)}</span>
                       </div>
                     </div>
 

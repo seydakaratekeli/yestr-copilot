@@ -26,10 +26,11 @@ export function formatArea(area: number | null | undefined): string {
 // Proje durum etiketleri (Veritabanındaki İngilizce değerleri Türkçe yapar)
 export function getProjectStatusLabel(status: string | null | undefined): string {
   const statuses: Record<string, string> = {
-    planning: "Planlama Aşamasında",
-    in_progress: "Devam Ediyor",
-    completed: "Tamamlandı",
-    suspended: "Askıya Alındı",
+    draft: "Taslak",
+    documents_uploaded: "Belgeler yüklendi",
+    processing: "İşleniyor",
+    analyzed: "Analiz edildi",
+    archived: "Arşivlendi",
   };
   return status ? (statuses[status] || status) : "Bilinmiyor";
 }
@@ -37,10 +38,55 @@ export function getProjectStatusLabel(status: string | null | undefined): string
 // Proje türü etiketleri
 export function getProjectTypeLabel(type: string | null | undefined): string {
   const types: Record<string, string> = {
-    residential: "Konut",
-    commercial: "Ticari",
-    industrial: "Endüstriyel",
-    mixed_use: "Karma Kullanım",
+    new_building: "Yeni bina",
+    existing_building: "Mevcut bina / renovasyon",
   };
   return type ? (types[type] || type) : "Bilinmiyor";
+}
+
+export function getBuildingTypeLabel(type: string | null | undefined): string {
+  const types: Record<string, string> = {
+    public: "Kamu binası",
+    office: "Ofis",
+    education: "Eğitim binası",
+    healthcare: "Sağlık yapısı",
+    residential: "Konut",
+    commercial: "Ticari yapı",
+    mixed: "Karma kullanım",
+    other: "Diğer",
+  };
+
+  return type ? (types[type] || type) : "Belirtilmedi";
+}
+
+export function getFacadeDirectionLabel(
+  direction: string | null | undefined,
+): string {
+  const directions: Record<string, string> = {
+    north: "Kuzey",
+    northeast: "Kuzeydoğu",
+    east: "Doğu",
+    southeast: "Güneydoğu",
+    south: "Güney",
+    southwest: "Güneybatı",
+    west: "Batı",
+    northwest: "Kuzeybatı",
+  };
+
+  return direction
+    ? (directions[direction] || direction)
+    : "Belirtilmedi";
+}
+
+export function getCertificateLevelLabel(
+  level: string | null | undefined,
+): string {
+  const levels: Record<string, string> = {
+    pass: "Asgari uygunluk",
+    good: "İyi",
+    very_good: "Çok iyi",
+    national_excellence: "Ulusal üstünlük",
+  };
+
+  return level ? (levels[level] || level) : "Belirtilmedi";
 }
